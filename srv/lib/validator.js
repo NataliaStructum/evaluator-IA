@@ -65,7 +65,7 @@ function validate(sqlResult) {
     !('tablas_usadas' in sqlResult) ||
     !('confianza' in sqlResult) ||
     !('razonamiento' in sqlResult)
-  ) {
+  ) { 
     return 'Respuesta del LLM con formato inválido.';
   }
 
