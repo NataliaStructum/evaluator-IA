@@ -1,0 +1,31 @@
+Starting CAP Project Generator...
+Using @sap/cds-dk [9.9.1] from /extbin/globals/pnpm/5/.pnpm/@sap+cds-dk@9.9.1_@eslint+js@10.0.1_@sap+hana-client@2.28.20_tar@7.5.15/node_modules/@sap/cds-dk
+Using @sap/generator-cap-project [2.0.6] from [/extbin/globals/pnpm/5/.pnpm/@sap+generator-cap-project@2.0.6_encoding@0.1.13_mem-fs@2.1.0_yeoman-environment@3.19.3_@types+node@25.7.0_/node_modules/@sap/generator-cap-project]
+Using root path [/home/user/projects]
+
+Creating project with hana, mta, nodejs, tiny-sample, xsuaa
+
+Adding facet: nodejs
+Adding facet: mta
+Adding facet: tiny-sample
+Adding facet: xsuaa
+Adding facet: hana
+
+Successfully initialized CAP project
+Continue with: code evaluator-IA 
+
+
+Installing dependencies...
+
+added 257 packages, and audited 258 packages in 5s
+
+37 packages are looking for funding
+  run `npm fund` for details
+
+found 0 vulnerabilities
+
+Finished installing dependencies
+
+Done setting up project evaluator-IA
+Project is ready to use
+

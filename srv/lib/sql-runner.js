@@ -1,0 +1,117 @@
+'use strict';
+// srv/lib/sql-runner.js
+// ─────────────────────────────────────────────────────────────────
+// Responsabilidad única: ejecutar SQL en HANA via CDS y manejar
+// los errores de ejecución de forma controlada.
+//
+// No valida el SQL (eso es trabajo de validator.js).
+// No genera el SQL (eso es trabajo de prompt-builder.js).
+// Solo ejecuta y retorna los datos o lanza un error descriptivo.
+// ─────────────────────────────────────────────────────────────────
+
+const cds = require('@sap/cds');
+
+// Límite de registros que puede retornar una query.
+// Protege contra queries que devuelvan tablas completas accidentalmente.
+const MAX_ROWS = 3000;
+
+/**
+ * Ejecuta una query SQL en HANA y retorna los resultados.
+ *
+ * @param {string} sql - SQL validado listo para ejecutar
+ * @returns {Promise<Array>} - Array de objetos con los resultados
+ * @throws {Error} - Si la query falla en HANA
+ */
+async function run(sql) {
+  // Inyectar TOP si la query no lo tiene, como capa adicional de seguridad
+  // HANA usa TOP, no LIMIT
+  const sqlWithLimit = _injectTopClause(sql, MAX_ROWS);
+
+  try {
+    const db = await cds.connect.to('db');
+    const result = await db.run(sqlWithLimit);
+
+    // CDS puede retornar un objeto único si es COUNT(*) u otro escalar
+    if (!result) return [];
+    if (Array.isArray(result)) return result;
+
+    // Si es un objeto único (ej: resultado de COUNT), lo envuelve en array
+    return [result];
+
+  } catch (err) {
+    // Wrappear el error de HANA en algo más legible para el log de auditoría
+    // sin exponer detalles técnicos al usuario final
+    const message = _parseHanaError(err);
+    throw new Error(message);
+  }
+}
+
+/**
+ * Inyecta TOP N en el SELECT si la query no lo tiene ya.
+ * Maneja SELECT DISTINCT y SELECT con comentarios al inicio.
+ *
+ * @param {string} sql
+ * @param {number} limit
+ * @returns {string}
+ */
+function _injectTopClause(sql, limit) {
+  const trimmed = sql.trim();
+
+  // Si ya tiene TOP o LIMIT, no tocar
+  const upperSql = trimmed.toUpperCase();
+  if (upperSql.includes(' TOP ') || upperSql.includes('\nTOP ')) return trimmed;
+  if (upperSql.includes(' LIMIT ') || upperSql.includes('\nLIMIT ')) return trimmed;
+
+  // Insertar TOP después de SELECT o SELECT DISTINCT
+  return trimmed
+    .replace(/^SELECT DISTINCT\s+/i, `SELECT DISTINCT TOP ${limit} `)
+    .replace(/^SELECT\s+/i, `SELECT TOP ${limit} `);
+}
+
+/**
+ * Convierte errores técnicos de HANA en mensajes más descriptivos.
+ * No exponer stack traces ni detalles de schema al log de usuario.
+ *
+ * @param {Error} err
+ * @returns {string}
+ */
+function _parseHanaError(err) {
+  const msg = err.message ?? '';
+
+  if (msg.includes('invalid table name') || msg.includes('not found')) {
+    return 'La consulta referencia una tabla que no existe en el esquema.';
+  }
+  if (msg.includes('invalid column name')) {
+    return 'La consulta referencia una columna que no existe.';
+  }
+  if (msg.includes('syntax error') || msg.includes('parse error')) {
+    return 'El SQL generado tiene un error de sintaxis.';
+  }
+  if (msg.includes('permission') || msg.includes('privilege')) {
+    return 'Sin permisos para acceder a ese recurso.';
+  }
+
+  // Error genérico — loguear el original en consola para debugging
+  console.error('[sql-runner] Error HANA no categorizado:', err.message);
+  return 'Error al ejecutar la consulta en la base de datos.';
+}
+
+async function getSeasonsByIDs(ids = []) {
+
+  if (!ids.length) return [];
+  const db = await cds.connect.to('db');
+
+  return await db.run(
+    SELECT.from('app.evaluator.Season')
+      .columns(
+        'id',
+        'description',
+        'status'
+      )
+      .where({
+        id: { in: ids }
+      })
+  );
+}
+
+module.exports = { run, getSeasonsByIDs };

@@ -1,0 +1,181 @@
+# chat-service.http
+# Pruebas locales del ChatService — ejecutar con REST Client (VS Code)
+# Extensión: humao.rest-client
+#
+# Prerequisito: cds watch corriendo en localhost:4004
+
+@baseUrl = http://localhost:4004/odata/v4/chat
+@contentType = application/json
+
+# ══════════════════════════════════════════════════════════════════
+# askQuestion — los 4 escenarios de temporadas
+# ══════════════════════════════════════════════════════════════════
+
+### 1. Todas las temporadas — array vacío
+# Espera: preparaciones de TODAS las temporadas (sin WHERE en SQL)
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Cuántas preparaciones hay en total?",
+  "temporadas": []
+}
+
+###
+
+### 2. Todas las temporadas — alias explícito ALL
+# Equivalente al anterior, misma cacheKey __all__
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Cuántas preparaciones hay en total?",
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+}
+
+###
+
+### 3. Una temporada específica
+# Espera: WHERE TEMPORADATEXT = '3bda7971-ee54-46f2-b7ac-b5d55e836d68'
+# Ajusta el valor al ID de temporada que tengas en tu HANA
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Qué preparaciones están abiertas?",
+  "temporadas": ["043494c4-f273-4233-bb0e-8e74f448aedb", "17897f02-0914-4d2e-a757-3148f6f2ceac"]
+}
+
+###
+
+### 4. Varias temporadas al tiempo
+# Espera: WHERE TEMPORADATEXT IN ('2024-A', '2024-B')
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Qué preparaciones existen?",
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68", "043494c4-f273-4233-bb0e-8e74f448aedb"]
+}
+
+###
+
+### 5. Segunda llamada con misma pregunta y scope — debe venir del caché
+# fromCache: true en la respuesta confirma que funcionó
+# Copiar question y temporadas exactas del request anterior
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Qué preparaciones están abiertas?",
+  "temporadas": ["2024-B"]
+}
+
+###
+
+### 6. Pregunta sin temporadas (null) — el LLM decide en Paso 5
+# En Paso 1 se comporta igual que [] pero con cacheKey __none__
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Cuál es el estado general de las preparaciones?"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# submitFeedback
+# ══════════════════════════════════════════════════════════════════
+
+### 7. Feedback positivo
+# Reemplaza el logID con uno real de la respuesta anterior
+POST {{baseUrl}}/submitFeedback
+Content-Type: {{contentType}}
+
+{
+  "auditLogID": "83423ad6-609e-4fb1-8610-11e94c0f5d2b",
+  "helpful": true,
+  "comment": ""
+}
+
+###
+
+### 8. Feedback negativo con comentario
+POST {{baseUrl}}/submitFeedback
+Content-Type: {{contentType}}
+
+{
+  "auditLogID": "d740a6d3-d1c6-4e23-a0ab-c8762213b905",
+  "helpful": false,
+  "comment": "La respuesta no incluyó las preparaciones cerradas"
+}
+
+# ══════════════════════════════════════════════════════════════════
+# getCacheStats — monitoreo
+# ══════════════════════════════════════════════════════════════════
+
+### 9. Ver estado del caché
+# Después de los requests anteriores debería mostrar active > 0 y totalHits > 0
+POST {{baseUrl}}/getCacheStats
+Content-Type: {{contentType}}
+
+{}
+
+# ══════════════════════════════════════════════════════════════════
+# invalidateCache
+# ══════════════════════════════════════════════════════════════════
+
+### 10. Invalidar una temporada específica
+POST {{baseUrl}}/invalidateCache
+Content-Type: {{contentType}}
+
+{
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+}
+
+###
+
+### 11. Invalidar varias temporadas
+POST {{baseUrl}}/invalidateCache
+Content-Type: {{contentType}}
+
+{
+  "temporadas": ["043494c4-f273-4233-bb0e-8e74f448aedb", "17897f02-0914-4d2e-a757-3148f6f2ceac"]
+}
+
+###
+
+### 12. Invalidar TODO el caché
+POST {{baseUrl}}/invalidateCache
+Content-Type: {{contentType}}
+
+{
+  "temporadas": ["ALL"]
+}
+
+# ══════════════════════════════════════════════════════════════════
+# SuggestedQuestions — entidad read-only
+# ══════════════════════════════════════════════════════════════════
+
+### 13. Listar preguntas sugeridas activas
+GET {{baseUrl}}/SuggestedQuestions
+Accept: application/json
+
+# ══════════════════════════════════════════════════════════════════
+# AuditLog — revisar qué quedó registrado
+# ══════════════════════════════════════════════════════════════════
+
+### 14. Ver los últimos logs de auditoría
+GET {{baseUrl}}/AuditLog?$top=10
+Accept: application/json
+
+###
+
+### 15. Filtrar logs por éxito = false (ver errores)
+GET {{baseUrl}}/AuditLog?$filter=success eq false&$top=20
+Accept: application/json
+
+###
+
+### 16. Filtrar logs que vinieron del caché
+GET {{baseUrl}}/AuditLog?$filter=cacheHit eq true&$top=20
+Accept: application/json
