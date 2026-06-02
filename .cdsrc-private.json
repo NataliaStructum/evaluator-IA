@@ -14,6 +14,19 @@
         "vcap": {
           "name": "db"
         }
+      },
+      "default_aicore": {
+        "binding": {
+          "type": "cf",
+          "apiEndpoint": "https://api.cf.us10-001.hana.ondemand.com",
+          "org": "Structum_Ingenieria S.A._structum-aoe8517d",
+          "space": "dev",
+          "instance": "default_aicore",
+          "key": "default_aicore-key"
+        },
+        "vcap": {
+          "name": "default_aicore"
+        }
       }
     }
   }

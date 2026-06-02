@@ -26,6 +26,7 @@ modules:
     requires:
       - name: evaluator-IA-auth
       - name: evaluator-IA-db
+      - name: default_aicore
 
   - name: evaluator-IA-db-deployer
     type: hdb
@@ -36,6 +37,8 @@ modules:
       - name: evaluator-IA-db
 
 resources:
+  - name: default_aicore
+    type: org.cloudfoundry.existing-service
   - name: evaluator-IA-auth
     type: org.cloudfoundry.managed-service
     parameters:

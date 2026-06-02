@@ -30,7 +30,7 @@ Content-Type: {{contentType}}
 
 {
   "question": "¿Cuántas preparaciones hay en total?",
-  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+  "temporadas": ["ALL"]
 }
 
 ###
@@ -43,7 +43,50 @@ Content-Type: {{contentType}}
 
 {
   "question": "¿Qué preparaciones están abiertas?",
-  "temporadas": ["043494c4-f273-4233-bb0e-8e74f448aedb", "17897f02-0914-4d2e-a757-3148f6f2ceac"]
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+}
+
+
+### 3. Una temporada específica
+# Espera: WHERE TEMPORADATEXT = '3bda7971-ee54-46f2-b7ac-b5d55e836d68'
+# Ajusta el valor al ID de temporada que tengas en tu HANA
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Cuantos empleados falta por terminar de evaluar?",
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+}
+
+### 3. Una temporada específica
+# Espera: WHERE TEMPORADATEXT = '3bda7971-ee54-46f2-b7ac-b5d55e836d68'
+# Ajusta el valor al ID de temporada que tengas en tu HANA
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Que empleados falta por terminar de evaluar?",
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+}
+
+### 3. Una temporada específica
+# Espera: WHERE TEMPORADATEXT = '3bda7971-ee54-46f2-b7ac-b5d55e836d68'
+# Ajusta el valor al ID de temporada que tengas en tu HANA
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Cuantos empleados por evaluar tiene JERRY PAUL PANCHANA GONZALEZ?",
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
+}
+
+### 3. Una temporada específica
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "¿Cuántos empleados tenía asignados para evaluar JERRY PAUL PANCHANA GONZALEZ?",
+  "temporadas": ["3bda7971-ee54-46f2-b7ac-b5d55e836d68"]
 }
 
 ###
@@ -179,3 +222,13 @@ Accept: application/json
 ### 16. Filtrar logs que vinieron del caché
 GET {{baseUrl}}/AuditLog?$filter=cacheHit eq true&$top=20
 Accept: application/json
+
+
+### 17. Pregunta incorrecta
+POST {{baseUrl}}/askQuestion
+Content-Type: {{contentType}}
+
+{
+  "question": "Hola, ¿como estas?",
+  "temporadas": []
+}

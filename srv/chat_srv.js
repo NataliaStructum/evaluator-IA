@@ -7,9 +7,7 @@ const validator = require('./lib/validator');
 const sqlRunner = require('./lib/sql-runner');
 const audit = require('./lib/audit');
 const normalizer = require('./lib/normalizer');
-
-// [PASO 5] Descomentar cuando se agregue IA:
-// const promptBuilder = require('./lib/prompt-builder');
+const promptBuilder = require('./lib/prompt-builder');
 
 module.exports = function () {
 
@@ -28,6 +26,7 @@ module.exports = function () {
 
     // ── Resolver scope ──────────────────────────────────────
     const scope = await _resolveScope(temporadas);
+    console.log(scope)
 
     // ── Base auditoría ──────────────────────────────────────
     const auditBase = {
@@ -36,7 +35,7 @@ module.exports = function () {
       question,
       normalizedQuestion,
       temporada: scope.label,
-      llmModel: 'none'
+      llmModel: 'gpt-4o-mini'
     };
 
     let sqlResult = null;
@@ -65,14 +64,26 @@ module.exports = function () {
       }
 
       // ── 2. Obtener SQL ────────────────────────────────────
-      // ┌───────────────────────────────────────────────────────┐
-      // │ PASO 1 — SQL hardcodeado de prueba                   │
-      // │ En Paso 5 reemplazar con:                            │
-      // │   const sqlResult = await promptBuilder              │
-      // │     .generateSQL(question, scope);                   │
-      // └───────────────────────────────────────────────────────┘
-
-      sqlResult = _buildTestSQL(scope);
+      let sqlResult;
+      try {
+        sqlResult = await promptBuilder.generateSQL(question, scope);
+      } catch (llmErr) {
+        // Si el LLM falla, loguear y retornar error descriptivo
+        const logID = await audit.log({
+          ...auditBase,
+          cacheHit: false,
+          latencyMs: Date.now() - startTime,
+          success: false,
+          errorMsg: `LLM generateSQL falló: ${llmErr.message}`,
+        });
+        return {
+          respuesta: 'El servicio de IA no está disponible en este momento. Intenta de nuevo en unos segundos.',
+          sql: null,
+          registros: 0,
+          fromCache: false,
+          logID: logID,
+        };
+      }
 
       // ── 3. Validar SQL ────────────────────────────────────
       const validationError = validator.validate(sqlResult);
@@ -101,14 +112,37 @@ module.exports = function () {
       const data = await sqlRunner.run(sqlResult.sql);
 
       // ── 5. Construir respuesta ────────────────────────────
-      // ┌───────────────────────────────────────────────────────┐
-      // │ PASO 1 — respuesta directa con datos raw             │
-      // │ En Paso 5 reemplazar con:                            │
-      // │   const respuesta = await promptBuilder.synthesize(  │
-      // │     question, data, sqlResult.razonamiento, scope    │
-      // │   );                                                 │
-      // └───────────────────────────────────────────────────────┘
-      const respuesta = _buildTestResponse(data, question, scope);
+      let respuesta;
+      try {
+        respuesta = await promptBuilder.synthesize(
+          question,
+          data,
+          sqlResult.razonamiento,
+          scope
+        );
+      } catch (synthErr) {
+        // Si la síntesis falla, devolver los datos raw formateados
+        // El usuario igual recibe algo útil
+        console.warn('[chat-service] synthesize falló, usando fallback:', synthErr.message);
+        respuesta = _fallbackResponse(data, scope);
+        const logID = await audit.log({
+          ...auditBase,
+          sql: sqlResult.sql ?? null,
+          tablesUsed: sqlResult.tablas_usadas ?? null,
+          resultCount: data.length ?? 0,
+          cacheHit: false,
+          latencyMs: Date.now() - startTime,
+          success: false,
+          errorMsg: `LLM synthesize falló: ${synthErr.message}`,
+        });
+        return {
+          respuesta: _fallbackResponse(data, scope),
+          sql: sqlResult.sql ?? null,
+          registros: data?.length ?? 0,
+          fromCache: false,
+          logID: logID,
+        };
+      }
 
       // 6. RESULT BASE
       const result = {
@@ -233,7 +267,7 @@ async function _resolveScope(temporadas) {
       type: 'all',
       values: [],
       descriptions: [],
-      label: 'todas las temporadas',
+      label: 'TODAS LAS TEMPORADAS',
       cacheKey: '__all__'
     };
   }
@@ -296,6 +330,16 @@ async function _resolveScope(temporadas) {
 }
 
 
+// ── Fallback si synthesize falla ────────────────────────────────
+// El usuario recibe datos útiles aunque el LLM de síntesis no responda
+function _fallbackResponse(data, scope) {
+  if (!data || data.length === 0) {
+    return `No se encontraron registros para ${scope.label}.`;
+  }
+  return `Se encontraron ${data.length} registro(s) para ${scope.label}. El servicio de síntesis no está disponible en este momento.`;
+}
+
+
 // ── Helpers de desarrollo (se eliminan en Paso 5) ───────────────
 
 function _buildTestSQL(scope) {
@@ -308,7 +352,7 @@ function _buildTestSQL(scope) {
     whereClause = `WHERE P.TEMPORADA_ID IN (${list})`;
   }
   // type 'all' → sin WHERE
-return {
+  return {
     sql: `
       SELECT
         P.ID,
@@ -343,3 +387,4 @@ function _buildTestResponse(data, question, scope) {
 
   return `[MODO PRUEBA] ${data.length} preparación(es) — ${scope.label}:\n\n${lines.join('\n')}`;
 }
+

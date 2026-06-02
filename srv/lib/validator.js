@@ -79,8 +79,13 @@ function validate(sqlResult) {
     return 'El LLM no generó una consulta SQL.';
   }
 
-  // ── Capa 1: Solo SELECT ────────────────────────────────────
+  // ── Capa 0: No reemplazó el ID de la temporada ────────────────────────────────────
   const trimmedUpper = sql.trim().toUpperCase();
+  if (trimmedUpper.includes('ID_TEMPORADA_EJEMPLO')) {
+    return 'El LLM no generó correctamente la consulta SQL.';
+  }
+
+  // ── Capa 1: Solo SELECT ────────────────────────────────────
   if (!trimmedUpper.startsWith('SELECT')) {
     return 'Solo se permiten consultas de lectura (SELECT).';
   }
