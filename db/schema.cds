@@ -92,3 +92,45 @@ entity Empleado {
         email                        : String(200);
         email2                       : String(200);
 }
+
+
+entity VER_EVALUATION_DETAIL as select
+	EP.temporada.id as temporadaId,
+	EP.temporada.description as temporada,
+	EP.temporada.status as estadoTemp,
+	EP.temporada.start_date,
+	EP.temporada.end_date,
+	
+	key EP.preparacion as preparacionId,
+	P.planC.Code as planCarreraId,
+	P.planCText,
+	P.evaluador.SAP_Number as evaluadorSapNumber,
+	P.evaluador.Cedula_Ingenio as cedula_evaluador,
+	P.evaluadortext as nombre_evaluador,
+	P.correo as email_evaluador,
+	
+	key EP.empleado.SAP_Number as empleadoSapNumber,
+	EP.empleado.First_Name || ' ' || EP.empleado.Last_Name AS nombre_empleado,
+	EP.empleado.Cedula_Ingenio as cedula_empleado,
+	EP.empleado.email as email_empleado,
+	
+	EP.createdAt,
+	EP.modifiedAt,
+	EP.lider,
+	EP.status as estadoEv,
+	CASE
+        WHEN EP.status IS NULL THEN 'borrador'
+        WHEN EP.status = 'Confirmado' THEN 'enprogreso'
+        WHEN EP.status = 'Terminado' THEN 'enretroalimentacion'
+        WHEN EP.status = 'Enviado' THEN 'finalizada'
+        ELSE EP.status
+    END AS estadoEvTexto,
+	
+	EP.evaluador as comentariosEv,
+	EP.evaluado as comentariosEm,
+	EP.id_cargo_Codigo as posicion,
+	EP.descripcion_cargo
+FROM Empleados_Preparacion as EP
+LEFT JOIN Preparacion as P on EP.preparacion = P.id
+
+

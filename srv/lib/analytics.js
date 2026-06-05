@@ -186,9 +186,91 @@ function pct(value) {
 }
 
 
+/**
+ * Busca registros de evaluaciones aplicando filtros opcionales.
+ *
+ * La búsqueda se realiza sobre la vista analítica VER_EVALUATION_DETAIL,
+ * la cual contiene información consolidada de:
+ * - Temporada
+ * - Preparación
+ * - Plan de carrera
+ * - Evaluador
+ * - Empleado
+ * - Estado de la evaluación
+ *
+ * Todos los filtros son opcionales y se combinan mediante AND.
+ *
+ * Los parámetros deben corresponder a identificadores previamente resueltos
+ * por otras skills o funciones de búsqueda.
+ *
+ * @param {Object} filters Filtros de búsqueda.
+ * @param {string} [filters.temporadaId] ID de la temporada.
+ * @param {string} [filters.planCarreraId] ID del plan de carrera.
+ * @param {string} [filters.evaluadorSapNumber] SAP Number del evaluador.
+ * @param {string} [filters.empleadoSapNumber] SAP Number del empleado.
+ * @param {string} [filters.estado] Estado amigable de la evaluación.
+ * @param {string} [filters.preparacionId] ID de la preparación.
+ *
+ * @returns {Promise<Array>} Registros encontrados.
+ */
+async function searchEvaluationRecords(filters = {}) {
+
+  const {
+    temporadaId,
+    planCarreraId,
+    evaluadorSapNumber,
+    empleadoSapNumber,
+    estado,
+    preparacionId
+  } = filters;
+
+  const { VER_EVALUATION_DETAIL } = cds.entities('app.evaluator');
+
+  const where = {};
+
+  if (temporadaId && temporadaId != '') {
+    where.temporadaId = temporadaId;
+  }
+
+  if (planCarreraId && planCarreraId != '') {
+    where.planCarreraId = planCarreraId;
+  }
+
+  if (evaluadorSapNumber && evaluadorSapNumber != '') {
+    where.evaluadorSapNumber = evaluadorSapNumber;
+  }
+
+  if (empleadoSapNumber && empleadoSapNumber != '') {
+    where.empleadoSapNumber = empleadoSapNumber;
+  }
+
+  estadoValue = estado ? estado.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '') : null;
+  if (estadoValue && estadoValue != '') {
+    where.estadoEvTexto = estadoValue;
+  }
+
+  if (preparacionId && preparacionId != '') {
+    where.preparacionId = preparacionId;
+  }
+
+  if (Object.keys(where).length === 0) {
+    return [];
+  }
+  
+  return await SELECT
+    .from(VER_EVALUATION_DETAIL)
+    .where(where)
+    .limit(100);
+}
+
+
 module.exports = {
   resolverTemporada,
   contarEstadosPrep,
   contarEstadosEmpleadosPrep,
-  pct
+  pct,
+  searchEvaluationRecords
 };

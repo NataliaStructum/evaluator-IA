@@ -8,7 +8,8 @@ const {
   resolverTemporada,
   contarEstadosPrep,
   contarEstadosEmpleadosPrep,
-  pct
+  pct,
+  searchEvaluationRecords
 } = require('./lib/analytics');
 
 
@@ -58,6 +59,28 @@ module.exports = function () {
       evaluacionesFinalizadas: detalle.enviado, //firmadas y completas
     };
   });
+
+  this.on('SearchEvaluationRecords', async req => {
+    const {
+      temporadaId,
+      planCarreraId,
+      evaluadorSapNumber,
+      empleadoSapNumber,
+      estado,
+      preparacionId
+    } = req.data;
+
+    if ( (!temporadaId || temporadaId == '') && (!planCarreraId || planCarreraId == '') && (!evaluadorSapNumber || evaluadorSapNumber == '') && (!empleadoSapNumber || empleadoSapNumber == '') && (!estado || estado == '') && (!preparacionId || preparacionId == '')) {
+      return req.error(400, 'Se requiere al menos un filtro para realizar la búsqueda.');
+    }
+
+    const result = await searchEvaluationRecords(req.data);
+    return {
+      totalRegistros: result.length,
+      registros: result
+    };
+  }
+  );
 
 
 };

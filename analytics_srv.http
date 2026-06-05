@@ -1,0 +1,47 @@
+# chat-service.http
+# Pruebas locales del ChatService — ejecutar con REST Client (VS Code)
+# Extensión: humao.rest-client
+#
+# Prerequisito: cds watch corriendo en localhost:4004
+
+@baseUrl = http://localhost:4004/odata/v4/Analytics
+@contentType = application/json
+
+# ══════════════════════════════════════════════════════════════════
+# askQuestion — los 4 escenarios de temporadas
+# ══════════════════════════════════════════════════════════════════
+
+### 1. Por preparacion
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='', estado='', preparacionId='PREP-PC-Zafra-2024-ADMINISTRATI-2-00009512-30807576')
+Content-Type: {{contentType}}
+
+### 2. Por temporada y empleado
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='3bda7971-ee54-46f2-b7ac-b5d55e836d68', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='00012025', estado='', preparacionId='')
+Content-Type: {{contentType}}
+
+00011311
+
+### 3. Por temporada y evaluador
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='3bda7971-ee54-46f2-b7ac-b5d55e836d68', planCarreraId='', evaluadorSapNumber='00011311', empleadoSapNumber='', estado='', preparacionId='')
+Content-Type: {{contentType}}
+
+
+
+### 3. Por temporada y estado
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='3bda7971-ee54-46f2-b7ac-b5d55e836d68', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='', estado='En Retroalimentación', preparacionId='')
+Content-Type: {{contentType}}
+
+### 3. Por temporada
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='3bda7971-ee54-46f2-b7ac-b5d55e836d68', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='', estado='', preparacionId='')
+Content-Type: {{contentType}}
+
+
+### 3. Por plan carrera
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='', planCarreraId='PC-ISC-Zafra-2025-FÁBRICA-ELAB-1', evaluadorSapNumber='', empleadoSapNumber='', estado='', preparacionId='')
+Content-Type: {{contentType}}
+
+
+
+### 3. VACIO
+GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='', estado='', preparacionId='')
+Content-Type: {{contentType}}
