@@ -12,14 +12,25 @@
 # ══════════════════════════════════════════════════════════════════
 
 ### 1. Por preparacion
-GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='', estado='', preparacionId='PREP-PC-Zafra-2024-ADMINISTRATI-2-00009512-30807576')
+POST {{baseUrl}}/SearchEvaluationRecords
 Content-Type: {{contentType}}
+
+{
+    "preparacionId": "PREP-PC-Zafra-2024-ADMINISTRATI-2-00009512-30807576"
+}
 
 ### 2. Por temporada y empleado
-GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='3bda7971-ee54-46f2-b7ac-b5d55e836d68', planCarreraId='', evaluadorSapNumber='', empleadoSapNumber='00012025', estado='', preparacionId='')
+POST {{baseUrl}}/SearchEvaluationRecords
 Content-Type: {{contentType}}
 
-00011311
+{
+    "temporadaId":"3bda7971-ee54-46f2-b7ac-b5d55e836d68",
+    "planCarreraId":"",
+    "evaluadorSapNumber":"", 
+    "empleadoSapNumber":"00012025", 
+    "estado":"", 
+    "preparacionId":""
+}
 
 ### 3. Por temporada y evaluador
 GET {{baseUrl}}/SearchEvaluationRecords(temporadaId='3bda7971-ee54-46f2-b7ac-b5d55e836d68', planCarreraId='', evaluadorSapNumber='00011311', empleadoSapNumber='', estado='', preparacionId='')

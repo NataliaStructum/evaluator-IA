@@ -74,7 +74,7 @@ service AnalyticsService {
 
   // ── Skill 2: SearchEvaluationRecords ─────────────────────────────
   // Buscar registros de evaluación por id de temporada, plan carrera, evaluador, empleado, estado y preparación
-  function SearchEvaluationRecords(
+  action SearchEvaluationRecords(
     temporadaId : String,
     planCarreraId : String,
     evaluadorSapNumber : String,

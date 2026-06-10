@@ -70,7 +70,7 @@ module.exports = function () {
       preparacionId
     } = req.data;
 
-    if ( (!temporadaId || temporadaId == '') && (!planCarreraId || planCarreraId == '') && (!evaluadorSapNumber || evaluadorSapNumber == '') && (!empleadoSapNumber || empleadoSapNumber == '') && (!estado || estado == '') && (!preparacionId || preparacionId == '')) {
+    if ( (!temporadaId || temporadaId.trim() == '') && (!planCarreraId || planCarreraId.trim() == '') && (!evaluadorSapNumber || evaluadorSapNumber.trim() == '') && (!empleadoSapNumber || empleadoSapNumber.trim() == '') && (!estado || estado.trim() == '') && (!preparacionId || preparacionId.trim() == '')) {
       return req.error(400, 'Se requiere al menos un filtro para realizar la búsqueda.');
     }
 
