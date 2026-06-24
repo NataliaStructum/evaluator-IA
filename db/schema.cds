@@ -22,6 +22,12 @@ entity Cargo {
         Liderazgo   : String default 'No';
 }
 
+entity HistoricoPosiciones {
+    key id       : UUID;
+        empleado : Association to Empleado;
+        Posicion : String(10);
+}
+
 entity Preparacion : managed {
     key id            : String(100);
         temporada     : Association to Season;

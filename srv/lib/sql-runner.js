@@ -114,4 +114,33 @@ async function getSeasonsByIDs(ids = []) {
   );
 }
 
-module.exports = { run, getSeasonsByIDs };
+
+/**
+ * Obtiene el histórico de posiciones de un empleado.
+ *
+ * @param {string} sapNumber Número SAP del empleado.
+ * @returns {Promise<Array>} Historial de posiciones del empleado.
+ */
+async function getPosicionesBySapNumber(sapNumber) {
+
+  if (!sapNumber) return [];
+
+  const db = await cds.connect.to('db');
+
+  return await db.run(
+    SELECT.from('app.evaluator.HistoricoPosiciones as H')
+      .leftJoin('app.evaluator.Cargo as C')
+      .on('H.posicion = C.codigo')
+      .columns(
+        'H.id as id',
+        'H.empleado_SAP_Number as empleadoSapNumber',
+        'H.Posicion as posicion',
+        'C.Description as descripcionCargo'
+      )
+      .where({
+        'H.empleado_SAP_Number': sapNumber
+      })
+  );
+}
+
+module.exports = { run, getSeasonsByIDs, getPosicionesBySapNumber };

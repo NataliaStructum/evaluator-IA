@@ -7,4 +7,12 @@ service MyEvaluationsService {
     entity Career_Plan           as projection on my.Career_Plan;
     entity Preparacion           as projection on my.Preparacion;
     entity Empleados_Preparacion as projection on my.Empleados_Preparacion;
+    entity HistoricoPosiciones   as projection on my.HistoricoPosiciones;
+
+    function getPosiciones(sapNumber: String) returns array of {
+        id       : UUID;
+        empleado_SAP_Number : String;
+        posicion : String;
+        descripcion_cargo : String;
+    };
 }
