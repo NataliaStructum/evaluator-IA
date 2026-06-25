@@ -15,4 +15,21 @@ service MyEvaluationsService {
         posicion : String;
         descripcion_cargo : String;
     };
+
+    function GetPreparacionId(careerPlanCode: String, evaluatorSapNumber: String) returns {
+        preparacionId : String;
+    };
+
+    function ResolverPersona(busqueda: String) returns array of {
+        sapNumber : String;
+        nombreCompleto : String;
+        cedulaIngenio : String;
+        email : String;
+        dependencia : String;
+    };
+
+    function ResolverPlanCarrera(busqueda: String, temporadaId: String) returns array of {
+        code : String;
+        description : String;
+    };
 }

@@ -143,4 +143,70 @@ async function getPosicionesBySapNumber(sapNumber) {
   );
 }
 
-module.exports = { run, getSeasonsByIDs, getPosicionesBySapNumber };
+
+
+async function resolverPersona(busqueda) {
+  if (!busqueda) return [];
+
+  const db = await cds.connect.to('db');
+
+  const value = `%${busqueda
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')}%`;
+
+  return await db.run(
+    `
+    SELECT TOP 10
+      SAP_NUMBER        AS "sapNumber",
+      FIRST_NAME || ' ' || LAST_NAME AS "nombreCompleto",
+      CEDULA_INGENIO   AS "cedulaIngenio",
+      EMAIL            AS "email",
+      DEPENDENCY_DESCRIPTION AS "dependencia"
+    FROM APP_EVALUATOR_EMPLEADO
+    WHERE LOWER(SAP_NUMBER) LIKE ?
+       OR LOWER(CEDULA_INGENIO) LIKE ?
+       OR LOWER(EMAIL) LIKE ?
+       OR LOWER(FIRST_NAME || ' ' || LAST_NAME) LIKE ?
+    `,
+    [value, value, value, value]
+  );
+}
+
+
+/**
+ * Busca uno o varios planes de carrera por código o descripción.
+ *
+ * @param {string} busqueda Texto ingresado por el usuario.
+ * @returns {Promise<Array>} Planes de carrera encontrados.
+ */
+async function resolverPlanCarrera(busqueda, temporadaId) {
+  if (!busqueda) return [];
+
+  const db = await cds.connect.to('db');
+
+  const value = `%${busqueda
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')}%`;
+
+  return await db.run(
+    `
+    SELECT TOP 10
+      CODE         AS "code",
+      DESCRIPTION  AS "description",
+      TEMPORADA_ID AS "temporadaId"
+    FROM APP_EVALUATOR_CAREER_PLAN
+    WHERE LOWER(CODE) LIKE ?
+       OR (
+            TEMPORADA_ID = ?
+            AND LOWER(DESCRIPTION) LIKE ?
+          )
+    `,
+    [value, temporadaId, value]
+  );
+}
+
+module.exports = { run, getSeasonsByIDs, getPosicionesBySapNumber, resolverPersona, resolverPlanCarrera };
