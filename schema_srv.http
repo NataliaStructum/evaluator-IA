@@ -1,0 +1,22 @@
+# schema-service.http
+# Pruebas locales del SchemaService — ejecutar con REST Client (VS Code)
+# Extensión: humao.rest-client
+#
+# Prerequisito: cds watch corriendo en localhost:4004
+
+@baseUrl = http://localhost:4004/odata/v4/my-evaluations
+@contentType = application/json
+
+# ══════════════════════════════════════════════════════════════════
+# askQuestion — los 4 escenarios de temporadas
+# ══════════════════════════════════════════════════════════════════
+
+### 1. Todas las temporadas — array vacío
+# Espera: preparaciones de TODAS las temporadas (sin WHERE en SQL)
+POST {{baseUrl}}/GetPreparacionId
+Content-Type: {{contentType}}
+
+{
+  "careerPlanCode": "PC-Zafra-2023-ADMINISTRATI-1",
+  "evaluatorSapNumber": "00004094"
+}

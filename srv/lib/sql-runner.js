@@ -209,4 +209,47 @@ async function resolverPlanCarrera(busqueda, temporadaId) {
   );
 }
 
-module.exports = { run, getSeasonsByIDs, getPosicionesBySapNumber, resolverPersona, resolverPlanCarrera };
+
+/**
+ * Busca temporadas por su descripción.
+ *
+ * Permite encontrar temporadas aunque el usuario escriba el nombre
+ * con diferentes combinaciones de mayúsculas, minúsculas o sin tildes.
+ *
+ * Ejemplos:
+ * - Zafra 2025
+ * - zafra 2025
+ * - ZAFRA 2025
+ * - mantenimiento 2024
+ *
+ * @param {string} busqueda Nombre de la temporada.
+ * @returns {Promise<Array>} Temporadas encontradas.
+ */
+async function resolverTemporada(busqueda) {
+
+  if (!busqueda) return [];
+
+  const db = await cds.connect.to('db');
+
+  const value = `%${busqueda
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')}%`;
+
+  return await db.run(
+    `
+    SELECT TOP 10
+      ID          AS "id",
+      DESCRIPTION AS "description",
+      STATUS      AS "status",
+      START_DATE  AS "startDate",
+      END_DATE    AS "endDate"
+    FROM APP_EVALUATOR_SEASON
+    WHERE LOWER(DESCRIPTION) LIKE ?
+    `,
+    [value]
+  );
+}
+
+module.exports = { run, getSeasonsByIDs, getPosicionesBySapNumber, resolverPersona, resolverPlanCarrera, resolverTemporada };

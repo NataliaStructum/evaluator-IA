@@ -9,27 +9,36 @@ service MyEvaluationsService {
     entity Empleados_Preparacion as projection on my.Empleados_Preparacion;
     entity HistoricoPosiciones   as projection on my.HistoricoPosiciones;
 
-    function getPosiciones(sapNumber: String) returns array of {
-        id       : UUID;
+    action getPosiciones(sapNumber: String)                                     returns array of {
+        id                  : UUID;
         empleado_SAP_Number : String;
-        posicion : String;
-        descripcion_cargo : String;
+        posicion            : String;
+        descripcion_cargo   : String;
     };
 
-    function GetPreparacionId(careerPlanCode: String, evaluatorSapNumber: String) returns {
+    action GetPreparacionId(careerPlanCode: String, evaluatorSapNumber: String) returns {
         preparacionId : String;
     };
 
-    function ResolverPersona(busqueda: String) returns array of {
-        sapNumber : String;
+    function ResolverPersona(busqueda: String)                                    returns array of {
+        sapNumber      : String;
         nombreCompleto : String;
-        cedulaIngenio : String;
-        email : String;
-        dependencia : String;
+        cedulaIngenio  : String;
+        email          : String;
+        dependencia    : String;
     };
 
-    function ResolverPlanCarrera(busqueda: String, temporadaId: String) returns array of {
-        code : String;
+    function ResolverPlanCarrera(busqueda: String, temporadaId: String)           returns array of {
+        code        : String;
         description : String;
+    };
+
+
+    function ResolverTemporada(busqueda: String)                                  returns many {
+        id          : UUID;
+        description : String;
+        status      : String;
+        startDate   : Date;
+        endDate     : Date;
     };
 }

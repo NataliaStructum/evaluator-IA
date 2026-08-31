@@ -4,6 +4,18 @@ const sqlRunner = require('./lib/sql-runner');
 
 module.exports = function () {
 
+    this.on('ResolverTemporada', async (req) => {
+
+        const { busqueda } = req.data;
+
+        if (!busqueda) {
+            return req.error(400, 'Se requiere un valor de búsqueda.');
+        }
+
+        return await sqlRunner.resolverTemporada(busqueda);
+
+    });
+
     this.on('ResolverPlanCarrera', async (req) => {
         const { busqueda, temporadaId } = req.data;
 
@@ -84,5 +96,5 @@ function generarPreparacionId(careerPlanCode, evaluatorSapNumber) {
 
     const random = `${Math.floor(1000 + Math.random() * 9000)}${Math.floor(1000 + Math.random() * 9000)}`;
 
-    return `PREP-${careerPlanCode}-${evaluatorSapNumber}-${random}`;
+    return `PREP-${careerPlanCode.toString()}-${evaluatorSapNumber.toString()}-${random}`;
 }
